@@ -121,6 +121,11 @@ export function Transformation() {
   const initialPathD = boundarySvgPathD(0, VIEW_W, VIEW_H);
   const setTransformationActive = useExperienceStore((s) => s.setTransformationActive);
   const transformationActive = useExperienceStore((s) => s.transformationActive);
+  // Gates the before/after portrait fetches behind a generous IntersectionObserver
+  // lead distance instead of loading them at mount. A one-way latch (never reset
+  // back to false) — once fetched, the browser cache keeps them ready regardless
+  // of scrolling back up, so re-observing would only waste a network round trip.
+  const [transformationImagesReady, setTransformationImagesReady] = useState(false);
 
   useEffect(() => {
     const portrait = portraitRef.current;
@@ -132,6 +137,32 @@ export function Transformation() {
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(portrait);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    // Hero is exactly 100vh with zero gap above this section, so any positive
+    // bottom rootMargin here would already overlap the viewport at rest (scroll
+    // 0) — firing immediately instead of once the user actually starts
+    // scrolling. rootMargin 0 fires the instant the section begins entering
+    // the real viewport, which is still well ahead of the reveal itself: the
+    // pin doesn't even engage (scrubbing hasn't started) until a further
+    // "top 85%" -> "top top" scroll span past that point. Separate from the
+    // pin/scrub observers below: this only ever needs to fire once, so it
+    // disconnects immediately rather than tracking transformationActive's
+    // on/off state.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTransformationImagesReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px", threshold: 0 }
+    );
+    observer.observe(section);
     return () => observer.disconnect();
   }, []);
 
@@ -370,13 +401,16 @@ export function Transformation() {
                 and after.png are genuine RGBA with soft edge alpha, not
                 flat-opaque images, so that fallback fill was visible as a
                 faint but real color mismatch against the page background). */}
-            <CampaignImage
-              src={transformation.beforeImageSrc}
-              alt="Before"
-              label={transformation.beforeLabel}
-              seed="before"
-              className="absolute inset-0 h-full w-full bg-transparent"
-            />
+            {transformationImagesReady && (
+              <CampaignImage
+                src={transformation.beforeImageSrc}
+                alt="Before"
+                label={transformation.beforeLabel}
+                seed="before"
+                priority
+                className="absolute inset-0 h-full w-full bg-transparent"
+              />
+            )}
 
             <svg
               className="absolute inset-0 h-full w-full"
@@ -423,7 +457,7 @@ export function Transformation() {
                 </mask>
               </defs>
               <image
-                href={transformation.afterImageSrc}
+                href={transformationImagesReady ? transformation.afterImageSrc : undefined}
                 x="0"
                 y="0"
                 width={VIEW_W}

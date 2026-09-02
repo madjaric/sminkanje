@@ -1,8 +1,8 @@
 export const transformation = {
   beforeLabel: "Pre",
   afterLabel: "Posle",
-  beforeImageSrc: "/images/transformation/before.png",
-  afterImageSrc: "/images/transformation/after.png",
+  beforeImageSrc: "/images/transformation/before.webp",
+  afterImageSrc: "/images/transformation/after.webp",
   watchShowreelLabel: "Pogledaj Showreel",
   scrollCue: "Skroluj za transformaciju",
   stages: [
