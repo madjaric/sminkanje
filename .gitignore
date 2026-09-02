@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# unused/duplicate source assets — kept locally for reference, not needed to
+# build or run the site (the brush model actually loaded at runtime is
+# public/models/brush-web.glb; the transformation reveal images actually used
+# are public/images/transformation/before.png and after.png; the service
+# photos actually used are public/images/services/*.jpg)
+/public/models/brush-original.glb
+/public/images/before.png
+/public/images/after.png
+/public/images/*.jfif
+/public/images/20260901_*
+/gltf_json_dump.json
