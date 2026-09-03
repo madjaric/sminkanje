@@ -20,7 +20,7 @@ const HOVER_DELAY = 160;
  * center-crop would cut into a couple of the faces.
  */
 const SERVICE_FOCUS: Record<string, string> = {
-  bridal: "66% 38%",
+  bridal: "38% 38%",
   "soft-glam": "50% 45%",
   "full-glam": "38% 32%",
   editorial: "34% 30%",
@@ -147,9 +147,20 @@ export function Services() {
             </p>
 
             <div>
-              <h2 className="font-serif text-5xl uppercase leading-[0.95] text-foreground md:text-6xl lg:text-7xl">
-                {active.name}
-              </h2>
+              {/* Fixed-height title wrapper, not just a min-height on the h2:
+                  a one-line name (e.g. "Puni Glam") and a two-line one (e.g.
+                  "Mladenačka šminka") must occupy the *same* box so this
+                  section's height — and the hero photo's own h-full crop,
+                  which tracks it — never changes when the active service
+                  changes. The box is sized for the two-line case at this
+                  reduced title size (see leading/text-size below); a
+                  one-line title is centered inside it with flex instead of
+                  sitting glued to the top. */}
+              <div className="flex flex-col justify-center md:h-[94px]">
+                <h2 className="font-serif text-4xl uppercase leading-[0.95] text-foreground md:text-[44px]">
+                  {active.name}
+                </h2>
+              </div>
               <span className="mt-6 block h-px w-16 bg-gold/40" aria-hidden="true" />
             </div>
 
