@@ -101,13 +101,13 @@ export function Services() {
       <div className="relative grid grid-cols-1 gap-y-10 pt-8 md:flex-1 md:grid-cols-[200px_360px_1fr] md:gap-x-10 md:pt-0 lg:grid-cols-[220px_400px_1fr] lg:gap-x-14">
         {/* LEFT — vertical category nav (desktop only; the bottom strip covers this role on mobile). A fixed top offset rather than vertical centering — matches Hero/Transformation's own convention, and keeps this clear of the fixed navbar regardless of viewport height (centering within a full-height row left too little headroom on short viewports). */}
         <nav aria-label="Kategorije usluga" className="relative hidden pl-6 md:block md:pl-14">
-          <span className="absolute left-6 top-28 h-[calc(100%-7rem)] w-px bg-white/10 md:left-14" aria-hidden="true" />
+          <span className="absolute left-6 top-16 h-[calc(100%-4rem)] w-px bg-white/10 md:left-14" aria-hidden="true" />
           <span
             aria-hidden="true"
-            className="absolute left-6 top-28 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_8px_rgba(201,162,77,0.55)] transition-transform duration-500 ease-out md:left-14"
+            className="absolute left-6 top-16 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_8px_rgba(201,162,77,0.55)] transition-transform duration-500 ease-out md:left-14"
             style={{ transform: `translateY(${activeIndex * ITEM_HEIGHT + ITEM_HEIGHT / 2 - 3}px)` }}
           />
-          <ul className="md:pt-28">
+          <ul className="md:pt-16">
             {services.map((service, i) => (
               <li key={service.id} style={{ height: ITEM_HEIGHT }}>
                 <button
@@ -138,7 +138,7 @@ export function Services() {
         </nav>
 
         {/* CENTER — counter, title, description, price, CTA for the active service */}
-        <div className="flex flex-col justify-center pl-6 md:justify-start md:pl-0 md:pt-28">
+        <div className="flex flex-col justify-center pl-6 md:justify-start md:pl-0 md:pt-16">
           <div key={active.id} className="animate-in fade-in slide-in-from-bottom-2 flex flex-col gap-6 duration-500 ease-out">
             <p className="font-sans text-sm tracking-editorial text-foreground-muted">
               <span className="text-gold">{String(activeIndex + 1).padStart(2, "0")}</span>
@@ -183,8 +183,13 @@ export function Services() {
           </div>
         </div>
 
-        {/* RIGHT — hero photo, edge-to-edge to the viewport's right side, feathered into the dark scene on its other two exposed edges */}
-        <div className="relative h-[46vh] min-h-[280px] md:h-full md:min-h-0">
+        {/* RIGHT — hero photo, edge-to-edge to the viewport's right side, feathered into the dark scene on its other two exposed edges.
+            md:h-[512px] is a deliberate fixed height, not h-full: this grid row auto-sizes to its tallest column's own content, so
+            leaving this h-full (tracking the row) meant any change to the CENTER column's padding/content height — e.g. tuning the
+            top offset per the "raise the content block up" pass — silently resized this photo panel and its crop for every active
+            service. Fixing it here decouples the photo from that column entirely; 512px matches the row height this section already
+            settled on. */}
+        <div className="relative h-[46vh] min-h-[280px] md:h-[512px] md:min-h-0">
           <div
             className="absolute inset-0"
             style={{
