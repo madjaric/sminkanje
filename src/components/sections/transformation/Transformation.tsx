@@ -312,7 +312,7 @@ export function Transformation() {
     <section
       ref={sectionRef}
       id="artist"
-      className="relative z-10 flex min-h-screen flex-col justify-center overflow-visible px-6 pb-24 pt-28 md:h-screen md:overflow-hidden md:px-14 md:pb-20"
+      className="relative z-10 flex min-h-[100svh] flex-col justify-center overflow-visible px-6 pb-24 pt-28 md:h-screen md:overflow-hidden md:px-14 md:pb-20"
     >
       <div
         aria-hidden="true"
@@ -353,7 +353,16 @@ export function Transformation() {
         {/* CENTER — portrait + brush-driven reveal */}
         <div
           ref={portraitRef}
-          className="relative mx-auto aspect-[3/4] h-[58vh] max-h-[640px] w-auto md:h-[64vh]"
+          // Height-driven sizing (aspect-[3/4] + h-<vh> + w-auto) computes width
+          // from viewport height — on narrow/tall phones that width regularly
+          // exceeds the column's own available width (this section's px-6
+          // padding), pushing the portrait past the right edge and forcing a
+          // page-level horizontal scroll. Below md, sizing flips to width-driven
+          // (w-full + h-auto) so the box is always bounded by its actual
+          // container instead of an unrelated viewport dimension — aspect-ratio
+          // keeps the same 3:4 crop either way, just solved from the other axis.
+          // md: restores the original height-driven behavior untouched.
+          className="relative mx-auto aspect-[3/4] h-auto w-full max-h-[640px] md:h-[64vh] md:w-auto"
         >
           {/* Portrait imagery, masked into a soft silhouette rather than a
               visible rectangle — both `before` and `after` sit inside this

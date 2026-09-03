@@ -35,7 +35,7 @@ export function Hero() {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center"
+      className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-6 text-center"
     >
       <p className="hero-eyebrow mb-6 font-sans text-xs uppercase tracking-editorial text-foreground-muted">
         {hero.eyebrow}

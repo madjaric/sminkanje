@@ -189,7 +189,18 @@ export function Services() {
             top offset per the "raise the content block up" pass — silently resized this photo panel and its crop for every active
             service. Fixing it here decouples the photo from that column entirely; 512px matches the row height this section already
             settled on. */}
-        <div className="relative h-[46vh] min-h-[280px] md:h-[512px] md:min-h-0">
+        {/* overflow-hidden: the inactive (opacity-0) crossfade images below carry
+            their own scale-[1.035] transform for the zoom-out-on-swap effect —
+            a transform inflates an element's own geometry around its center, so
+            even fully invisible those images' boxes reach ~1.75% past this
+            panel's edges on every side. Nothing here is meant to bleed past the
+            panel (the masks below fade the visible edges inward, not extend
+            them outward), so clipping at this boundary has no visible effect —
+            it only stops that invisible overhang from padding out the page's
+            scrollWidth (the actual cause of a few px of phantom horizontal
+            scroll on narrow viewports, where this panel already sits flush
+            against the true edge of the screen). */}
+        <div className="relative h-[46dvh] min-h-[280px] overflow-hidden md:h-[512px] md:min-h-0">
           <div
             className="absolute inset-0"
             style={{
@@ -228,7 +239,7 @@ export function Services() {
 
       {/* BOTTOM — all five categories, edge-to-edge, always visible */}
       <div className="relative shrink-0 border-t border-white/10">
-        <div className="flex overflow-x-auto [scrollbar-width:none] md:grid md:grid-cols-5 md:overflow-visible">
+        <div className="flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-5 md:overflow-visible">
           {services.map((service, i) => {
             const isActive = i === activeIndex;
             return (

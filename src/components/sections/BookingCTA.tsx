@@ -73,7 +73,7 @@ export function BookingCTA() {
     <section
       ref={sectionRef}
       id="booking"
-      className="relative z-10 flex min-h-screen flex-col justify-center px-6 py-28 md:px-14"
+      className="relative z-10 flex min-h-[100svh] flex-col justify-center px-6 py-28 md:px-14"
     >
       <div className="grid flex-1 items-center gap-16 md:grid-cols-2 md:gap-16">
         {/* LEFT — eyebrow + the dominant headline */}
