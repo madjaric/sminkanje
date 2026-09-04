@@ -1,4 +1,5 @@
 import { useMemo, useRef } from "react";
+import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useExperienceStore, type BrushState } from "@/lib/store";
 
@@ -25,6 +26,30 @@ const RAW_KEYFRAMES: Array<{
 ];
 
 const SCENE_COUNT = RAW_KEYFRAMES.length;
+
+/**
+ * Mobile-only hero composition correction. CameraRig.tsx clears the brush
+ * from the hero headline (a downward re-aim) but — per its own comment —
+ * deliberately does *not* move the camera's position to shrink the brush:
+ * doing that broke the PBR material's reflections (moving the camera far
+ * enough to matter shifts every surface's view-reflection vector away from
+ * the studio environment's key, reading as flat matte black regardless of
+ * added light). So apparent *size* is controlled here instead, by scaling
+ * the object itself — camera stays at its normal distance, so the
+ * reflections that make it read as a lit, physical brush stay intact.
+ *
+ * This also nudges it toward the upper-right (so it settles as a corner-ish
+ * detail rather than dead center) and adds a little extra roll for a raked
+ * diagonal entry, ramped identically to CameraRig's own narrow-aspect ramp
+ * (full strength by aspect 1.0) so the two corrections read as one coherent
+ * mobile composition instead of drifting apart at different aspects.
+ */
+const MOBILE_REFERENCE_ASPECT = 1.2;
+const MOBILE_FULL_BELOW_ASPECT = 1.0;
+const MOBILE_SCALE_MULT = 0.42;
+const MOBILE_POSITION_X_SHIFT = 0.12;
+const MOBILE_POSITION_Y_SHIFT = -0.4;
+const MOBILE_EXTRA_ROLL_DEG = -8;
 
 function buildKeyframes(): Keyframe[] {
   return RAW_KEYFRAMES.map((k) => ({
@@ -53,6 +78,7 @@ function resolveBrushState(progress: number): BrushState {
 }
 
 export function useBrushRig() {
+  const { size } = useThree();
   const keyframes = useMemo(() => buildKeyframes(), []);
   const curve = useMemo(
     () =>
@@ -100,7 +126,7 @@ export function useBrushRig() {
     );
     targetQuaternion.current.slerpQuaternions(qA.current, qB.current, localT);
 
-    const targetScale = THREE.MathUtils.lerp(
+    let targetScale = THREE.MathUtils.lerp(
       keyframes[segmentIndex].scale,
       keyframes[Math.min(segmentIndex + 1, segments)].scale,
       localT
@@ -111,6 +137,32 @@ export function useBrushRig() {
       const driftAmount = 0.05;
       targetPosition.current.y += Math.sin(elapsedTime * 0.6) * driftAmount;
       targetPosition.current.x += Math.cos(elapsedTime * 0.4) * driftAmount * 0.5;
+    }
+
+    // Mobile hero composition correction (see constants above) — folded
+    // into the *targets* before smoothing/lerping below, not applied as a
+    // post-multiply on the final group transform: group.scale.setScalar
+    // further down lerps FROM group.scale.x itself, so mutating the scale
+    // after that call would feed a partially-corrected value back in as
+    // next frame's starting point, settling at a distorted equilibrium
+    // instead of the intended value. Position/rotation targets are
+    // recomputed fresh every frame either way, so adjusting them here is
+    // safe regardless.
+    const aspect = size.width / size.height;
+    if (aspect < MOBILE_REFERENCE_ASPECT) {
+      const t = THREE.MathUtils.clamp(
+        (MOBILE_REFERENCE_ASPECT - aspect) / (MOBILE_REFERENCE_ASPECT - MOBILE_FULL_BELOW_ASPECT),
+        0,
+        1
+      );
+      targetScale *= THREE.MathUtils.lerp(1, MOBILE_SCALE_MULT, t);
+      targetPosition.current.x += THREE.MathUtils.lerp(0, MOBILE_POSITION_X_SHIFT, t);
+      targetPosition.current.y += THREE.MathUtils.lerp(0, MOBILE_POSITION_Y_SHIFT, t);
+      const extraRoll = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(0, 0, 1),
+        THREE.MathUtils.degToRad(THREE.MathUtils.lerp(0, MOBILE_EXTRA_ROLL_DEG, t))
+      );
+      targetQuaternion.current.premultiply(extraRoll);
     }
 
     const smoothing = reducedMotion ? 1 : 1 - Math.exp(-4.5 * delta);
